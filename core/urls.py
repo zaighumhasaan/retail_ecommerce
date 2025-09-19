@@ -9,6 +9,10 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('order-confirmation/<int:order_id>/', views.order_confirmation, name='order_confirmation'),
     
+    # Health check endpoint
+    path('health/', views.health_check, name='health_check'),
+    path('debug/', views.debug_info, name='debug_info'),
+    
     # AJAX endpoints
     path('api/add-to-cart/', views.add_to_cart, name='add_to_cart'),
     path('api/update-cart/', views.update_cart, name='update_cart'),

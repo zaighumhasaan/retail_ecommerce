@@ -346,3 +346,31 @@ def change_order_status(request):
             
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
+
+
+def health_check(request):
+    """Health check endpoint for Render deployment"""
+    return JsonResponse({
+        'status': 'healthy',
+        'message': 'Django application is running',
+        'timestamp': timezone.now().isoformat()
+    })
+
+
+def debug_info(request):
+    """Debug information for troubleshooting"""
+    from django.conf import settings
+    import os
+    
+    return JsonResponse({
+        'debug': settings.DEBUG,
+        'allowed_hosts': settings.ALLOWED_HOSTS,
+        'database_engine': settings.DATABASES['default']['ENGINE'],
+        'static_url': settings.STATIC_URL,
+        'media_url': settings.MEDIA_URL,
+        'environment_vars': {
+            'DEBUG': os.environ.get('DEBUG'),
+            'ALLOWED_HOSTS': os.environ.get('ALLOWED_HOSTS'),
+            'DATABASE_URL': os.environ.get('DATABASE_URL', 'Not set')[:50] + '...' if os.environ.get('DATABASE_URL') else 'Not set'
+        }
+    })
