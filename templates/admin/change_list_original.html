@@ -1,0 +1,93 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ title }}</h1>
+        <p class="text-muted mb-0">Manage your {{ title|lower }} efficiently</p>
+    </div>
+    {% if has_add_permission %}
+    <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_add' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Add {{ opts.verbose_name }}
+    </a>
+    {% endif %}
+</div>
+
+{% if cl.result_count %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Results ({{ cl.result_count }} items)</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th class="border-end text-center" style="width: 80px;">Image</th>
+                        <th class="border-end">Name</th>
+                        <th class="border-end">Category</th>
+                        <th class="border-end text-end">Price</th>
+                        <th class="border-end text-center">Stock</th>
+                        <th class="border-end text-center">Status</th>
+                        <th class="border-end text-center">Created</th>
+                        <th class="border-end text-center" style="width: 100px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in cl.result_list %}
+                    <tr>
+                        <td class="border-end text-center">{{ result.image_thumbnail|safe }}</td>
+                        <td class="border-end">
+                            <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_change' result.pk %}">{{ result.name }}</a>
+                        </td>
+                        <td class="border-end">{{ result.category }}</td>
+                        <td class="border-end text-end">${{ result.price }}</td>
+                        <td class="border-end text-center">
+                            <span class="badge {% if result.stock > 0 %}bg-success{% else %}bg-warning{% endif %}">{{ result.stock }}</span>
+                        </td>
+                        <td class="border-end text-center">
+                            {% if result.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="border-end text-center">{{ result.created_at|date:"M d, Y" }}</td>
+                        <td class="border-end text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_change' result.pk %}" 
+                                   class="btn btn-outline-primary btn-sm" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_delete' result.pk %}" 
+                                   class="btn btn-outline-danger btn-sm" 
+                                   title="Delete"
+                                   onclick="return confirm('Are you sure you want to delete this product?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <h4 class="text-muted">No {{ opts.verbose_name_plural|lower }} found</h4>
+        <p class="text-muted">Get started by adding your first {{ opts.verbose_name|lower }}.</p>
+        {% if has_add_permission %}
+        <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_add' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Add {{ opts.verbose_name }}
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

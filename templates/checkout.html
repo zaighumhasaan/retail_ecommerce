@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - Retail Store{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-credit-card"></i> Checkout
+        </h2>
+    </div>
+</div>
+
+{% if cart_items %}
+<div class="row">
+    <!-- Checkout Form -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Order Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="checkoutForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="customer_name" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="customer_name" name="customer_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="customer_email" class="form-label">Email Address *</label>
+                            <input type="email" class="form-control" id="customer_email" name="customer_email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="customer_phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="customer_phone" name="customer_phone">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="shipping_address" class="form-label">Shipping Address *</label>
+                        <textarea class="form-control" id="shipping_address" name="shipping_address" rows="3" required
+                                  placeholder="Enter your complete shipping address"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Order Notes (Optional)</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2"
+                                  placeholder="Any special instructions for your order"></textarea>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="terms" required>
+                        <label class="form-check-label" for="terms">
+                            I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a> *
+                        </label>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Order Summary</h5>
+            </div>
+            <div class="card-body">
+                {% for item in cart_items %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <small class="fw-bold">{{ item.product.name }}</small>
+                        <br>
+                        <small class="text-muted">Qty: {{ item.quantity }}</small>
+                    </div>
+                    <span class="fw-bold">${{ item.total_price }}</span>
+                </div>
+                {% endfor %}
+                
+                <hr>
+                
+                <div class="total-section">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal ({{ cart_count }} items):</span>
+                        <span>${{ cart_total }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping:</span>
+                        <span class="text-success">Free</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total:</strong>
+                        <strong class="text-primary">${{ cart_total }}</strong>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-3">
+                    <button type="submit" form="checkoutForm" class="btn btn-success btn-lg">
+                        <i class="fas fa-check"></i> Place Order
+                    </button>
+                    <a href="{% url 'cart' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Cart
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Order Processing</h6>
+                <p>Orders are processed within 1-2 business days. You will receive an email confirmation once your order is placed.</p>
+                
+                <h6>Shipping</h6>
+                <p>We offer free shipping on all orders. Delivery typically takes 3-5 business days.</p>
+                
+                <h6>Returns</h6>
+                <p>We accept returns within 30 days of purchase. Items must be in original condition with tags attached.</p>
+                
+                <h6>Payment</h6>
+                <p>We accept all major credit cards and PayPal. Your payment information is secure and encrypted.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Empty Cart Redirect -->
+<div class="row">
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">Your cart is empty</h4>
+            <p class="text-muted">Add some products to your cart before checking out.</p>
+            <a href="{% url 'products' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-shopping-bag"></i> Start Shopping
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-fill form if user is logged in
+    {% if user.is_authenticated %}
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('customer_name').value = '{{ user.get_full_name|default:user.username }}';
+        document.getElementById('customer_email').value = '{{ user.email }}';
+    });
+    {% endif %}
+</script>
+{% endblock %}

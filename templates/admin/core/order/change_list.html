@@ -1,0 +1,113 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+.status-dropdown {
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    font-size: 12px;
+    cursor: pointer;
+}
+.status-pending { background-color: #fff3cd; color: #856404; }
+.status-processing { background-color: #d1ecf1; color: #0c5460; }
+.status-shipped { background-color: #cce5ff; color: #004085; }
+.status-delivered { background-color: #d4edda; color: #155724; }
+.status-cancelled { background-color: #f8d7da; color: #721c24; }
+</style>
+{% endblock %}
+
+{% block result_list %}
+{{ block.super }}
+<script>
+$(document).ready(function() {
+    // Add status dropdowns to existing table
+    $('#result_list tbody tr').each(function() {
+        var $row = $(this);
+        var $statusCell = $row.find('td').eq(3); // Status column (4th column)
+        
+        if ($statusCell.length > 0) {
+            var statusText = $statusCell.text().trim();
+            var orderId = $row.find('td a').first().attr('href').match(/(\d+)\//);
+            orderId = orderId ? orderId[1] : null;
+            
+            if (orderId && statusText) {
+                var statusValue = statusText.toLowerCase();
+                if (['pending', 'processing', 'shipped', 'delivered', 'cancelled'].includes(statusValue)) {
+                    $statusCell.html(
+                        '<select class="status-dropdown status-' + statusValue + '" ' +
+                        'data-order-id="' + orderId + '" ' +
+                        'data-current-status="' + statusValue + '">' +
+                        '<option value="pending"' + (statusValue === 'pending' ? ' selected' : '') + '>Pending</option>' +
+                        '<option value="processing"' + (statusValue === 'processing' ? ' selected' : '') + '>Processing</option>' +
+                        '<option value="shipped"' + (statusValue === 'shipped' ? ' selected' : '') + '>Shipped</option>' +
+                        '<option value="delivered"' + (statusValue === 'delivered' ? ' selected' : '') + '>Delivered</option>' +
+                        '<option value="cancelled"' + (statusValue === 'cancelled' ? ' selected' : '') + '>Cancelled</option>' +
+                        '</select>'
+                    );
+                }
+            }
+        }
+    });
+    
+    // Add change event handler
+    $('.status-dropdown').change(function() {
+        var orderId = $(this).data('order-id');
+        var newStatus = $(this).val();
+        var currentStatus = $(this).data('current-status');
+        var $dropdown = $(this);
+        
+        if (newStatus === currentStatus) {
+            return; // No change
+        }
+        
+        // Show loading state
+        $dropdown.prop('disabled', true);
+        $dropdown.css('opacity', '0.6');
+        
+        // Make AJAX request
+        $.ajax({
+            url: '{% url "change_order_status" %}',
+            method: 'POST',
+            data: {
+                'order_id': orderId,
+                'new_status': newStatus,
+                'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Update the dropdown class
+                    $dropdown.removeClass('status-' + currentStatus);
+                    $dropdown.addClass('status-' + newStatus);
+                    $dropdown.data('current-status', newStatus);
+                    
+                    // Show success message
+                    $('<div class="messagelist"><div class="success">Order #' + orderId + ' status updated to ' + newStatus + '</div></div>')
+                        .insertAfter('.breadcrumbs')
+                        .delay(3000)
+                        .fadeOut();
+                } else {
+                    // Revert dropdown
+                    $dropdown.val(currentStatus);
+                    alert('Error updating status: ' + (response.message || 'Unknown error'));
+                }
+            },
+            error: function() {
+                // Revert dropdown
+                $dropdown.val(currentStatus);
+                alert('Error updating status. Please try again.');
+            },
+            complete: function() {
+                // Remove loading state
+                $dropdown.prop('disabled', false);
+                $dropdown.css('opacity', '1');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

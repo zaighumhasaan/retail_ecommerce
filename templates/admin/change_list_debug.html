@@ -1,0 +1,65 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ title }}</h1>
+        <p class="text-muted mb-0">Debug: {{ cl.result_count }} items</p>
+    </div>
+    {% if has_add_permission %}
+    <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_add' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Add {{ opts.verbose_name }}
+    </a>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Debug Information</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Result count:</strong> {{ cl.result_count }}</p>
+        <p><strong>Result list type:</strong> {{ cl.result_list|length }}</p>
+        <p><strong>Headers:</strong> {{ cl.result_headers|length }}</p>
+        
+        {% if cl.result_list %}
+        <h6>First result:</h6>
+        <pre>{{ cl.result_list.0 }}</pre>
+        
+        <h6>Headers:</h6>
+        <ul>
+            {% for header in cl.result_headers %}
+            <li>{{ header.text }}</li>
+            {% endfor %}
+        </ul>
+        
+        <h6>Results:</h6>
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead>
+                    <tr>
+                        {% for header in cl.result_headers %}
+                        <th>{{ header.text|capfirst }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in cl.result_list %}
+                    <tr>
+                        {% for item in result %}
+                        <td>{{ item }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No results found</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

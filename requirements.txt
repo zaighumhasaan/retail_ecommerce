@@ -1,0 +1,14 @@
+Django>=4.2
+psycopg2-binary
+djangorestframework
+gunicorn
+pytest
+pytest-django
+pytest-asyncio
+pytest-playwright
+coverage
+black
+flake8
+python-dotenv
+Pillow
+playwright

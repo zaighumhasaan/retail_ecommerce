@@ -1,0 +1,66 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to update price when product is selected
+    function updatePrice(selectElement) {
+        const productId = selectElement.value;
+        const priceInput = selectElement.closest('tr').querySelector('input[name$="-price"]');
+        
+        if (productId && priceInput) {
+            fetch(`/api/product-price/${productId}/`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.price !== undefined && priceInput.value === '') {
+                    priceInput.value = data.price;
+                    priceInput.dispatchEvent(new Event('change'));
+                }
+            })
+            .catch(error => console.log('Error fetching product price:', error));
+        }
+    }
+
+    // Add event listeners to all product select fields
+    const productSelects = document.querySelectorAll('select[name$="-product"]');
+    productSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            updatePrice(this);
+        });
+    });
+
+    // Add event listeners to quantity and price inputs to recalculate total
+    function recalculateTotal(row) {
+        const quantityInput = row.querySelector('input[name$="-quantity"]');
+        const priceInput = row.querySelector('input[name$="-price"]');
+        const totalSpan = row.querySelector('.total-price-display');
+        
+        if (quantityInput && priceInput && totalSpan) {
+            const quantity = parseFloat(quantityInput.value) || 0;
+            const price = parseFloat(priceInput.value) || 0;
+            const total = quantity * price;
+            totalSpan.textContent = `$${total.toFixed(2)}`;
+        }
+    }
+
+    // Add event listeners for quantity and price changes
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('input[name$="-quantity"], input[name$="-price"]')) {
+            recalculateTotal(e.target.closest('tr'));
+        }
+    });
+
+    // Initial calculation for existing rows
+    document.querySelectorAll('tr.dynamic-orderitem_set').forEach(row => {
+        recalculateTotal(row);
+    });
+});
+</script>
+{% endblock %}

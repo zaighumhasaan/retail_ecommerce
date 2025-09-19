@@ -1,0 +1,18 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ title }}</h1>
+        <p class="text-muted mb-0">Manage your {{ title|lower }} efficiently</p>
+    </div>
+    {% if has_add_permission %}
+    <a href="{% url 'admin:'|add:opts.app_label|add:'_'|add:opts.model_name|add:'_add' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Add {{ opts.verbose_name }}
+    </a>
+    {% endif %}
+</div>
+
+{{ block.super }}
+{% endblock %}
