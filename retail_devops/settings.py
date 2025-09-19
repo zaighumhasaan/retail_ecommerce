@@ -26,7 +26,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-icees!%g%m0gsn$ozrlj#
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # Allow all hosts for production deployment
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'testserver,127.0.0.1,localhost').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'testserver,127.0.0.1,localhost,retail-ecommerce.onrender.com,*.onrender.com').split(',')
+
+# Clean up ALLOWED_HOSTS - remove empty strings and strip whitespace
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS if host.strip()]
 
 
 # Application definition
